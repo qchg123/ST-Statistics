@@ -1,0 +1,112 @@
+﻿<!DOCTYPE html>
+
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>ST-PG35 Statistics</title>
+    
+    <script src="https://a.alipayobjects.com/jquery/jquery/1.11.1/jquery.js"></script>
+    <script src="https://gw.alipayobjects.com/as/g/datavis/g2/2.3.13/index.js"></script>
+
+</head>
+<body style="background-image:url(peoplecounting.png)">
+    
+    <h1 style="text-align:center">People Counting System</h1>
+    <div style="text-align:right">
+        <text id="datetime"></text>
+    
+        <table border="0">
+            <tr style="height:40px">
+                <th style="width:200px"><h3>Room 1:</h3></th>
+                <th style="width:50px"><h3 id="bigOne"></h3></th>
+            </tr>
+            <tr style="height:40px">
+                <th style="width:200px"><h3>Room 2:</h3></th>
+                <th style="width:50px"><h3 id="bigTwo"></h3></th>
+            </tr>
+            <tr style="height:40px">
+                <th style="width:200px"><h3>Room 3:</h3></th>
+                <th style="width:50px"><h3 id="bigThree">0</h3></th>
+            </tr>
+
+        </table>
+    </div>
+
+    <div id="c1"></div>
+    <script>
+        var data = [];
+        var chart = new G2.Chart({
+            id: 'c1',
+            forceFit: true,
+            height: 450
+        });
+        chart.source(data, {
+            time: {
+                alias: 'time',
+                type: 'time',
+                mask: 'HH:MM',
+                tickCount: 180,
+                nice: false
+            },
+            temperature: {
+                alias: 'Number Of People',
+                min: 0,
+                max: 120
+            },
+            type: {
+                type: 'cat'
+            }
+        });
+        chart.line().position('time*temperature').color('type', ['#ff7f0e', '#2ca02c', '#1418A4'], ).shape('smooth').size(3);
+
+        chart.render();
+
+        var tmp = setInterval(function () {
+            var now = new Date();
+            var time = now.getTime();
+            var temperature1 = Number(bigOne.innerHTML)
+            var temperature2 = Number(bigTwo.innerHTML)
+            var temperature3 = Number(bigThree.innerHTML)
+            if (data.length >= 200) {
+                data.shift();
+                data.shift();
+            }
+            data.push({ time: time , temperature: temperature1, type: 'ROOM1' });
+            data.push({ time: time , temperature: temperature2, type: 'ROOM2' });
+            data.push({ time: time , temperature: temperature3, type: 'ROOM3' });
+
+            chart.changeData(data);
+        }, 5000);
+    </script>
+    <script>
+        setInterval("document.getElementById('datetime').innerHTML=new Date().toLocaleString();", 1000)
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/6.2.4/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/3.1.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/3.1.0/firebase-database.js"></script>
+    <script>
+        var firebaseConfig = {
+            apiKey: "AIzaSyA_64nvoL4vycEjrq_Rb10acAgcwjLmu2E",
+            authDomain: "st-pc-f86d8.firebaseapp.com",
+            databaseURL: "https://st-pc-f86d8.firebaseio.com",
+            projectId: "st-pc-f86d8",
+            storageBucket: "",
+            messagingSenderId: "430747960826",
+            appId: "1:430747960826:web:dba4f33fe252b267"
+        };
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        var bigOne = document.getElementById('bigOne');
+        var dbRef = firebase.database().ref().child('building').child('location1');
+        dbRef.on('value', snap => bigOne.innerHTML = snap.val());
+        var bigTwo = document.getElementById('bigTwo');
+        var dbRefTwo = firebase.database().ref().child('building').child('location2');
+        dbRefTwo.on('value', snap => bigTwo.innerHTML = snap.val());
+        var bigThree = document.getElementById('bigThree');
+        var dbRefThree = firebase.database().ref().child('building').child('location3');
+        dbRefThree.on('value', snap => bigThree.innerHTML = snap.val());
+
+        dbRef.on('value', snap => console.log(snap.val()));
+    </script>
+</body>
+</html>
